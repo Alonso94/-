@@ -24,7 +24,7 @@
 \usepackage{floatrow}
 \usepackage[ruled,linesnumbered,vlined]{algorithm2e}
 \usepackage{algpseudocode}
-\usepackage[final]{graphicx}
+% \usepackage[final]{graphicx}
 \usepackage{subfigure}
 \usepackage{subcaption}
 \usepackage{minted}
@@ -41,36 +41,48 @@
 \DeclareMathOperator*{\argmin}{arg\,min}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator{\E}{\mathbb{E}}
-\definecolor{mygray}{rgb}{0.4,0.4,0.4}
-\definecolor{mygreen}{rgb}{0,0.8,0.6}
-\definecolor{myorange}{rgb}{1.0,0.4,0}
-
-
-\definecolor{mygray}{rgb}{0.4,0.4,0.4}
-\definecolor{mygreen}{rgb}{0,0.8,0.6}
-\definecolor{myorange}{rgb}{1.0,0.4,0}
-
-\lstdefinestyle{customc}{
-  belowcaptionskip=1\baselineskip,
-  breaklines=true,
-  frame=L,
-  xleftmargin=\parindent,
-  language=C,
-  showstringspaces=false,
-  basicstyle=\footnotesize\ttfamily,
-  keywordstyle=\bfseries\color{green!40!black},
-  commentstyle=\itshape\color{purple!40!black},
-  identifierstyle=\color{blue},
-  stringstyle=\color{orange},
-  numbers=left,
-  numbersep=12pt,
-  numberstyle=\small\color{mygray},
-}
-\lstset{escapechar=@,style=customc}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
 
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttm,
+otherkeywords={self},             % Add keywords here
+keywordstyle=\ttb\color{deepblue},
+emph={MyClass,__init__},          % Custom highlighting
+emphstyle=\ttb\color{deepred},    % Custom highlighting style
+stringstyle=\color{deepgreen},
+frame=tb,                         % Any extra options here
+showstringspaces=false            % 
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
 
 \begin{document}
 
@@ -135,7 +147,7 @@
          \hline
          Офлайн выч. сложность & Низкая (+) & Высокая (-) \\
          \hline
-         Стабильность & Зависит от терминального затрата (+) & Неприсущий(-) \\
+         Стабильность & Зависит от терминального стоимости (+) & Неприсущий(-) \\
          \hline
          Осуществимость & Зависит от терминального ограничения (+) & Неприсущий(-) \\
          \hline
@@ -155,15 +167,36 @@
 
 Вместо обучения динамическую модель явно, мы будем рассматривать систему как систему Марковского процесса принятия решений (аналогично случаю в обучении подкреплению).\\
 
-Полный алгоритм можно рассматривать как основанную на модели задачу обучения подкреплению, с моделью прогностического регулятора в качестве планировщика. Или проблема модели прогностического управления на основе обучения с подкреплением.\\
+Полный алгоритм можно рассматривать как основанную на модели задачу обучения с подкреплением, с моделью прогностического регулятора в качестве планировщика. Или проблема модели прогностического управления на основе обучения с подкреплением.\\
 
 \begin{figure}[H]
     \centering
-    \includegraphics[height=8cm]{img/MPC_ru.png}
+    \includegraphics[height=8.5cm]{img/mpc_ru.png}
     \caption{MPC на основе обучения с подкреплением}
     \label{fig:my_label}
 \end{figure}
 \newpage
+Мы протестируем наш прототип на двух основных средах:
+\begin{enumerate}[noitemsep]
+    \item Маятник на тележке (Cart Pole):\\
+Маятник на тележке - общий эталонный тест для алгоритмов управления и обучения с подкреплением, маятник прикреплен неуправляемым маятник к тележке, которая движется по пути без трения. Система управляется путем приложения силы +1 или -1 к тележке. Маятник начинает двигаться вертикально, и цель состоит в том, чтобы предотвратить его падение. Вознаграждение в размере +1 предоставляется за каждый шаг времени, когда маятник остается в вертикальном положении.
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=3cm,trim={0 2cm 0 2cm},clip]{img/cart.png}
+    \caption{Маятник на тележке (Cart Pole)}
+    \label{fig:my_label}
+\end{figure}
+\item Манипулятор 7 степень свободы:\\
+Позиция цели выбирается случайным образом в 3D пространстве. Мы должны управлять манипулятор, чтобы достичь этой цели как можно быстрее. Манипулятор управляется в пространстве шарниров т. е. каждое действие состоит из 7 команд относительного движения к двигателям шарниров. Вознаграждение дается как отрицательное расстояние до цели.
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=6cm,trim={0 2cm 0 2cm},clip]{img/arm.png}
+    \caption{Манипулятор 7 степень свободы}
+    \label{fig:my_label}
+\end{figure}
+
+\newpage
+\end{enumerate}
 \section{Исследовательская часть} 
 \subsection{Оптимальное управления}
 \subsubsection{Модель системы и функция стоимости:}
@@ -372,50 +405,344 @@ Ensemble Neural Networks (ENN)}
     \label{fig:my_label}
 \end{figure}
 
+Чтобы избежать переобучения нейронных сетей, мы будем использовать метод регуляризации, называемый распадом весов.  Идея заключается в том, наказывать большие веса и эффективно ограничивать свободу в модели. Добавляя новый термин к функции стоимости, т. е.:
+$$w_{я-1} \leftarrow w_i - \eta \frac{\delta E} {\delta w_i} - \eta \lambda w_i$$
+
+Алгоритм после добавления идеи ансамбля нейронных сетей\\
+
 \begin{algorithm}[H]
 \SetAlgoLined
 \DontPrintSemicolon
 \caption{Обучение с ансамблю нейронных сетей}
 Initialize E neural network with different random initialization $\theta_i^0$;
 Run a random policy;\\
-Collect data $\mathcal{D}=\{(s_n,a_n), s_{n+1}\}_{n=1}^N$;\\
+Collect data $\mathcal{D}=\{(s_n,a_n), s_{n+1}\}_{n=1}^N$\\
 \For{number of iterations}{
-collect $E$ datasets $\mathcal{D}_i$ N time (with replacement) from $\mathcal{D}$, $N=size(\mathcal{D})$;\\
+collect $E$ datasets $\mathcal{D}_i$ by sampling N time (with replacement) from $\mathcal{D}$, $N=size(\mathcal{D})$\\
 train each of the E neural network using one of datasets $\mathcal{D}_i$\\
-with loss $\sum_i ||(f_\theta)_i(s_i,a_i)-s_{i+1}||$;\\
+with loss $\sum_i ||(f_\theta)_i(s_i,a_i)-s_{i+1}||$\\
 \For{plan horizon}{
 compute the predictive probability distribution
 $$f_\theta(s_t,a_t)=\frac{1}{E}\sum_{i=1}^E (f_\theta)_i(s_t,a_t)$$\\
-plan through  $f_\theta(s_t,a_t)$ to choose a sequence of actions $U^*(t)$;\\
-execute the actions $U^*(t)$;\\
-observe the resulting data $\{(s_t,a_t, s_{n+1})_j\}$;\\
-append data $\{(s_t,a_t, s_{t+1})_j\}$ to $\mathcal{D}$;
+plan through  $f_\theta(s_t,a_t)$ to choose a sequence of actions $U^*(t)$\\
+execute the actions $U^*(t)$\\
+observe the resulting data $\{(s_t,a_t, s_{n+1})_j\}$\\
+append data $\{(s_t,a_t, s_{t+1})_j\}$ to $\mathcal{D}$
 }
 }
 \end{algorithm}
 
-\subsection{Выборка траектории с использованием частиц}
-
-
+\newpage
 \subsection{Максимизация перекрестной энтропии\\
 Cross-Entropy maximization (CEM)}
+Максимизация перекрестной энтропии CEM - это алгоритм стохастической оптимизации без градиента (на основе методов Monte Carlo). Мы будем использовать его в качестве оптимизатора для модельного прогностического контроллера, который будет выполнять часть планирования обучения с подкреплением на основе модели. \\
+
+Чтобы понять CEM, мы начнаем с самого простого метода оптимизации без градиента, который называется Random-shooting. Оптимизатор Random-shooting генерирует N независимых случайных последовательностей действий ${A_0,..,A_n}$, где каждая последовательность $A_i={a_0^i, ...., a_{H-1}^i}$ имеет длину действия H.\\
+
+Учитывая функцию вознаграждения $r(s, a)$, определяющую задачу, и учитывая прогнозы будущего состояния $\hat{s}_{t+1}=f_\theta (\hat{s}_t, a_t)+\hat{s}_t$ из обученной динамической модели $f_\theta$, оптимальная последовательность действий $A_i^*$ выбирается соответствующей последовательности с наибольшим прогнозируемым вознаграждением :
+$$i^*=\argmax_i R_i=\argmax_i \sum_{t'=t}^{t+H-1}r(\hat{s}_{t'},a_{t'}^i)$$
+
+Этот подход имеет свои недостатки: он плохо работать с большими размерами для горизонта планирования, так и пространства действий, и часто оказывается недостаточным для достижения высокой производительности задачи, поскольку последовательность действий, отобранных случайным образом, часто не приводит к значимому поведению.\\
+
+Чтобы решить эти проблемы, CEM начинает как подход Random-shooting, но затем делает выборку для нескольких итераций $m \in {0,.., M}$ на каждом временном шаге. Для обновления и уточнения среднего значения и дисперсии выборочного распределения для следующей итерации используются топовые последовательности действий с наивысшим баллом J из каждой итерации:
+$$A_i=\{a_0^i, .. a_{H-1}^i\};  a_t ^ i \sim \mathcal {N} (\mu_t ^ m, \Sigma_t ^ m)$$
+$$A_{elites} =sort(A_i) [:J]$$
+\newpage
+$$\mu_t^{m+1}=\alpha *mean(A_{elites})+(1-\alpha)* \mu_t^m$$
+$$\Sigma_t^{m+1}=\alpha * var(A_{elites})+(1-\alpha) *\Sigma_t^m$$
+После M итераций выбираются оптимальные действия, которые являются результирующим средним распределением действий.\\
+
+\begin{algorithm}[H]
+\SetAlgoLined
+\DontPrintSemicolon
+\caption{Максимизация перекрестной энтропии CEM}
+Initialize the mean $\mu$ and variance $\Sigma$\\
+define variance thresholds $var_{min}$\\
+determine the number of elites j\\
+\While{$i<$num of iterations or max(variance)<$var_{min}$}{
+draw action samples from a truncated norm distribution $a_i \sim \mathcal{N}(\mu_i,\Sigma_i)$\\
+collect the samples in $A_i$\\
+evaluate the generated samples (computing their costs)\\
+sort the action sets according to their cost
+$$sorted\_A=argsort(cost(A_i))$$
+$$A_{elites}=sorted\_A[:j]$$\\
+update the mean and variance
+$$\mu_{i+1}=\alpha *mean(A_{elites})+(1-\alpha)* \mu_i $$
+$$\Sigma_{i+1}=\alpha * var(A_{elites})+(1-\alpha) *\Sigma_i $$\\
+i=i+1
+}
+\end{algorithm}
 
 \newpage
-\subsection{Алгоритм}
+\subsection{Траектория отбор проб - распространение состояния}
+Вычисление стоимости действий является существенным этапом максимизации перекрестной энтропии, для этого мы должны спрогнозировать результирующее состояние применения каждого действия, формируя траекторию состояний для каждого набора действий.\\
+
+Чтобы предсказать возможные вероятные траектории состояний, мы должны использовать нашу обученную модель (которая представляет собой ансамбль нейронных сетей), и ее свойство в учитывании неопределенности перехода.\\
+
+Лучший способ сделать это-создать$ P $ частицы из текущего состояния, и каждая частица затем будет распространяться по нашей обученной модели:
+$$s_{t+1}^p \sim \tilde{f}_\theta (s_t^p, a_t) ; s_{t=0}^p = s_0$$
+
+Поскольку у нас есть ансамбль нейронных сетей, идея распространения частицы лучше всего реализуется путем выбора одной нейронной сети из ансамбля и распространения состоянии с помощью этой нейронной сети. \\
+
+Это означает, что мы назначаем каждой частице одну из нейронных сетей нашего ансамбля и используем эту нейронную сеть для предсказания следующего состояния при применении действия.
+$$s_{t+1}^p \sim \tilde{f}_{\theta_p}(s_t^p,a_t)$$
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=6.5cm]{img/state_prob(1).png}
+    \caption{Pаспространение состояния}
+    \label{fig:my_label}
+\end{figure}
 \newpage
-\subsection{Результаты и обсуждения}
+\subsection{Полный алгоритм}
+Поскольку у нас есть все компоненты алгоритма, мы можем сформировать система упраиления на основане обучении следующим образом:
+\begin{algorithm}
+\SetAlgoLined
+\DontPrintSemicolon
+\caption{MPC на основе обучения с подкреплением простой}
+Initialize data $\mathcal{D}$ with a random controller for one trial\\
+\For{trial k=1 to K}{
+Train the ensemble model with the data $\mathcal{D}$\\
+\For{time t=0 to Task horizon H}{
+\For{actions sampled using CEM $a_{t:t+H}$ to $N\_samples$}{
+propagate state particles $s_\tau^p$ using trajectory sampling method and the trained ensemble\\
+evaluate actions as $\sum_{\tau=t}^{t+H} \frac{1}{P}\sum_{p=1}^P r(s_\tau^p,a_\tau)$\\
+update CEM distribution\\
+}
+execute the first action $a_t^*$ from optimal actions $a_{t:t+H}^*$
+record the outcome: $\mathcal{D} \leftarrow \mathcal{D} \cup {s_t,a_t^*,s_t+1}$
+}
+}
+\end{algorithm}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{img/mpc_ru.png}
+    \caption{MPC на основе обучения с подкреплением}
+    \label{fig:my_label}
+\end{figure}
+
+\begin{algorithm}
+\SetAlgoLined
+\DontPrintSemicolon
+\caption{MPC на основе обучения с подкреплением полная}
+Initialize E neural network with different random initialization $\theta_i^0$\\
+Initialize the mean $\mu$ and variance $\Sigma$\\
+define variance thresholds $var_{min}$\\
+determine the number of elites $j$\\
+determine the number of particles $P$\\
+Run a random controller for one trial\\
+Collect data $\mathcal{D}=\{s_t,a_t,s_{t+1},r_t\}$\\
+\For{number of trials}{
+collect $E$ datasets $\mathcal{D}_i$ by sampling N time from $\mathcal{D}$\\
+train each of the E neural network using one of datasets $\mathcal{D}_i$\\
+% with loss $\sum_i ||(f_\theta)_i(s_i,a_i)-s_{i+1}||$\\
+\While{max(variance)<$var_{min}$ or \#iterations<threshold}{
+draw action samples $a_i \sim \mathcal{N}(\mu_i,\Sigma_i)$\\
+collect action sets $A_i=a_{t:t+H}$\\
+\For{each action set $A_i$}{
+\For{time t in range(task horizon H)}{
+initialize cost=0\\
+\For{action $a_i$ from $a_{t:t+H}$}{
+make $P$ particles from the current state\\
+assign each particle $p$ to a model $f_{\theta}^p$\\
+predict the next state distribution using the model
+$s_{t+1}^p \sim f_{\theta}^p(s_t^p,a_t)$\\
+compute the cost of the action and add it to the cost \newline
+$cost_i+= \frac{1}{P}\sum_{p=1}^P r(s_\tau^p,a_t)$
+}
+update the cost of the action set
+$cost(A_i)=cost_i$\\
+save the cost to an array cost\_A\\
+}
+}
+sort the action sets according to their cost
+$sorted\_A=argsort(cost\_A)$\newline
+$A_{elites}=sorted\_A[:j]$\\
+update the mean and variance\\
+% $$\mu_{i+1}=\alpha *mean(A_{elites})+(1-\alpha)* \mu_i $$
+% $$\Sigma_{i+1}=\alpha * var(A_{elites})+(1-\alpha) *\Sigma_i $$\\
+}
+execute the first action $a_t^*$ from the optimal action set $A^*=A_{elites}[-1]$\\
+add the output to the data set
+% $$\mathcal{D} \leftarrow \mathcal{D} \cup {s_t,a_t^*,s_t+1}$$
+}
+
+\end{algorithm}
+\newpage
+\subsection{Реализация алгоритма}
+Реализация алгоритма состоит из трех основных классов:
+\begin{enumerate}
+    \item Класс ENV :
+В которой окружения определена как Марковский процесс принятия решений, она содержит функции init (), step(), reset ().
+\item Класс ensemble :
+Определяет динамическую модель нашей системы, она представляет собой ансамбль нейронных сетей.
+Модель была реализована в PyTorch, где каждая нейронная сеть состоит из 4 слоев, каждый слой имеет 200 нейронов. Вход системы имеет размерность равное размерность действия плюс размерность состояния, а выход имеет размерность равно размерность состояния (выход является следующим состоянием). Выходной сигнал сети является математической ожидание распределения, а дисперсия рассчитывается как полоса вокруг математической ожидание.
+\begin{python}
+# network structure
+self.layer0_w,self.layer0_b=
+        get_w_b(ensemble_size,input_size,200)
+self.layer1_w, self.layer1_b = 
+        get_w_b(ensemble_size, 200, 200)
+self.layer2_w, self.layer2_b = 
+        get_w_b(ensemble_size, 200, 200)
+self.layer3_w, self.layer3_b = 
+        get_w_b(ensemble_size, 200, output_size)
+# forward function
+def forward(self, input):
+    x=(input-self.inputs_mu)/self.inputs_sigma
+    x=x.matmul(self.layer0_w)+self.layer0_b
+    x=torch.sigmoid(x)
+    x = x.matmul(self.layer1_w) + self.layer1_b
+    x = torch.sigmoid(x)
+    x = x.matmul(self.layer2_w) + self.layer2_b
+    x = torch.sigmoid(x)
+    x = x.matmul(self.layer3_w) + self.layer3_b
+    mean=x[:,:,:self.output_size]
+    logvar=x[:,:,:self.output_size]
+    logvar=max_logvar-F.softplus(max_logvar-logvar)
+    logvar=min_logvar+F.softplus(logvar-min_logvar)
+    return mean,logvar
+\end{python}
+\item MPC class: класс, в котором реализованы все части алгоритма, и он содержит следующие методы:
+\begin{enumerate}
+    \item Метод инициализации (\_\_init\_\_):\\
+инициализировать все параметры системы (параметры окружения, параметры модельного предсказательного регулятора , параметры ансамбля нейронных сетей, параметры максимизации кросс-энтропии, параметры распространения)
+\begin{python}
+# MPC parameters
+self.horizon=25
+self.previous_solution=np.tile(
+        np.zeros(self.action_dim),[self.horizon])
+# Ensemble parameters
+self.E=5
+self.input_size=self.action_dim+self.state_dim
+self.output_size=self.state_dim
+self.model=ensemble(self.E,
+    self.input_size,self.output_size).to(device)
+self.model.optim=torch.optim.Adam(
+    self.model.parameters(),lr=0.001)
+self.n_train_iter=100
+self.epochs=5
+self.batch_size=32
+self.init_population=2000
+self.has_trained=False
+# CEM parameters
+self.solution_dim=self.horizon*self.action_dim
+self.population_size=400
+self.n_elites=40
+self.max_iter=5
+self.alpha=0.1
+self.var_min=0.001
+self.action_range=[-0.2,0.2]
+# propagation parameters
+self.n_particles=20
+self.train_in=np.array([]).reshape(0,
+            self.action_dim+self.state_dim)
+self.train_out=np.array([]).reshape(0,
+            self.state_dim)
+\end{python}
+\newpage
+\item rollout():\\
+Запускайте политику на роботе, чтобы собрать траекторию состояний и действий. Кроме того, чтобы построить график результатов.
+\item collect\_data():\\
+Эта функция вызывает функцию rollout несколько раз и собирает ее выходные данные в набор данных.
+\item train\_the\_model():\\
+Функция для обучения динамической модели системы собирает данные, подготавливает ее к подаче ансамблю нейронных сетей путем перетасовки набора данных для каждого ансамбля, после чего запускает процедуру обучения путем вычисления оптимизации модели для минимизации стоимости (которая определяется квадратом ошибки между выходом сети и целевым выходом).
+\begin{python}
+idx=np.random.randint(self.train_in.shape[0],
+    size=[self.E,self.train_in.shape[0]])
+num_batches=int(np.ceil(idx.shape[-1]/batch_size))
+for _ in range(self.epochs):
+    for b in range(num_batches):
+        # take a batch
+        b_indx=idx[:,b*self.batch_size:
+                        (b+1)*self.batch_size]
+        #the loss of the uncertainty and decay
+        loss=0.01*(self.model.max_logvar.sum()-
+                    self.model.min_logvar.sum())
+        loss+=self.model.compute_decays()
+        # compute the output of the model
+        mean,logvar=self.model(train_in)
+        inv_var=torch.exp(-logvar)
+        # compute the losses (to a scalar)
+        squared_error=(mean-train_out)**2
+        train_losses=squared_error*inv_var+logvar
+        # the full loss
+        loss+=train_losses.mean(-1).mean(-1).sum()
+        # train the model
+        self.model.optim.zero_grad()
+        loss.backward()
+        self.model.optim.step()
+\end{python}
+\item act(state):\\
+Даст случайное действие, если модель еще не была обучена, или искать оптимальную последовательность действий с помощью оптимизатора CEM и выполняет первое действие.
+\item obtain\_solution(previous\_solution):\\
+Получить решение с помощью оптимизатора CEM, где матиматическое ожидание распределения является предыдущим решением, он производит выборку последовательностей действий и оценивает ее, вычисляя стоимость всех последовательностей, сортирует их и после этого обновляет матиматическое ожидание и дисперсию распределения. Выход - это среднее значение распределения после оптимизации.\\
+
+\begin{python}
+# CEM
+t=0
+mean=previous_solution
+var=self.init_variance
+truncated_normal=truncnorm(-0.2,0.2,
+    loc=np.zeros_like(mean),
+    scale=np.ones_like(var))
+while t<self.max_iter and 
+        np.max(var)>self.var_min:
+    samples=truncated_normal.rvs(
+        size=[self.population_size,
+                self.solution_dim])
+    samples=samples*np.sqrt(var)+mean
+    samples=samples.astype(np.float32)
+    costs=self.propagate_to_find_costs(samples)
+    sorted=samples[np.argsort(costs)]
+    elites=sorted[:self.n_elites]
+    new_mean=np.mean(elites,axis=0)
+    new_var=np.var(elites,axis=0)
+    mean=self.alpha*mean+(1-self.alpha)*new_mean
+    var=self.alpha*var+(1-self.alpha)*new_var
+    t+=1
+return mean
+\end{python}
+\newpage
+\item propagate\_to\_find\_cost(action\_sequences):\\
+Исходя из текущего состояния системы, сделайте из нее копии, число которых равные результату умножения числа последовательностей действий на число частиц. Для каждой последовательности действий; предсказать следующее состояние для каждой частицы, используя ансамбль нейронных сетей, и вычислить стоимость для этого состояния, вычислить стоимость последовательности действий путем суммирования стоимости посещенных состояний.
+\begin{python}
+for t in range(self.horizon):
+    current_action=action_sequences[t]
+    next_state=self.predict(current_state,
+                            current_action)
+    cost=self.state_cost(next_state)+
+            self.action_cost(current_action)
+    cost=cost.view(-1,self.n_particles)
+    costs+=cost
+    current_state=predicted_next_state
+\end{python}
+\item predict(state, action):\\
+учитывая состояние и действие, спрогнозируйте следующее состояние с помощью ансамбля нейронных сетей.
+\item run\_the\_whole\_system():\\
+после обучения модели в первый раз эта функция в каждой итерации использует MPC для сбора развертки, обработки выходных данных и обучения динамической модели на нем.
+\begin{python}
+if not self.has_trained:
+    self.train_the_model()
+for i in range(num_trials):
+    states,actions,next_states,ret=self.rollout()
+    input=np.concatenate([states,actions],axis=-1)
+    output=np.array(next_states)-np.array(states)
+    self.train_in = np.concatenate(
+                   [self.train_in, input], axis=0)
+    self.train_out = np.concatenate(
+                 [self.train_out, output], axis=0)
+    self.train_the_model()
+\end{python}
+\end{enumerate}
+\end{enumerate}
+\newpage
+\subsection{Результаты}
+
 \newpage
 \section{Заключение}
-В этой работе, согласно плану, мы закончили исследовательскую часть выпускникого проекта и приступили к экспериментальной части.\\
 
-Работа по достижению этой части включала тщательное изучение всех упомянутых алгоритмов, написание кода для тестирования и исследование плюсов и минусов каждого из них. Эта работа также привела к публикации статьи о нашей работе с PILCO.
-Обсуждая результаты нашей работы до сих пор, мы имеем четкое представление о различных алгоритмах обучения с подкреплением которые могут быть использованы для нашей задачи.\\
-
-Безмодельные алгоритмы (например, SAC) могут быть использованы для изучения оптимальной политики для широкого круга задач, превосходящей производительность человека и классические управления после полного процесса обучения, но они страдают от проблемы неэффективности пробы, что делает их непрактичными для реальных приложений робототехники. \\
-
-С другой стороны,алгоритмы обучения с подкреплением на основе модели изучают модель окружающей среды, а затем используют планирование в соответствии с изученной моделью. Это повышает эффективность пробы учебного процесса, но делает систему уязвимой к ошибкам модели, что приводит к плохой производительности или ограничению в работе (как в случае с PILCO).\\
-
-Наша работа в следующем будет сосредоточена на попытке найти компромисс между алгоритмами без моделей и на основе моделей и использовать оптимальное управление наряду с обучением (learning-based control) для решения проблемы сборки.
 \newpage
 \begin{thebibliography}{9}
     \addcontentsline{toc}{section}{\refname}
